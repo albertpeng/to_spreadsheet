@@ -1,10 +1,13 @@
 require 'spec_helper'
 
 describe ToSpreadsheet::XLS do
+  let(:html) { Haml::Engine.new(TEST_HAML).render }
+  let(:workbook) { ToSpreadsheet::XLS.to_io(html) }
   let(:spreadsheet) {
-    html  = Haml::Engine.new(TEST_HAML).render
-    xls_io = ToSpreadsheet::XLS.to_io(html)
-    Spreadsheet.open(xls_io)
+    tmp_file = Tempfile.new(%w[to_spreadsheet .xlsx])
+    IO.copy_stream(workbook.binmode, tmp_file.binmode)
+    tmp_file.close
+    RubyXL::Parser.parse(tmp_file.path)
   }
 
   it 'creates multiple worksheets' do
@@ -12,25 +15,16 @@ describe ToSpreadsheet::XLS do
   end
 
   it 'supports num format' do
-    spreadsheet.worksheet(0)[1, 1].should == 20
+    spreadsheet.worksheets[0][1][1].value.should == 20
   end
 
   it 'support float format' do
-    spreadsheet.worksheet(1)[1, 1].class.should be(Float)
+    spreadsheet.worksheets[1][1][1].value.should be_a(Float)
   end
 
   it 'supports date format' do
-    spreadsheet.worksheet(0)[1, 2].class.should be(Date)
+    Date.parse(spreadsheet.worksheets[0][1][2].value).should be_a(Date)
   end
-
-  # This is for final manual test
-  # The test spreadsheet will be saved to /tmp/spreadsheet.xls
-  it 'writes to disk' do
-    f = File.open('/tmp/spreadsheet.xls', 'wb')
-    Spreadsheet.writer(f).write_workbook(spreadsheet, f)
-    f.close
-  end
-
 end
 
 TEST_HAML = <<-HAML

@@ -1,10 +1,4 @@
-source "http://rubygems.org"
+source :rubygems
 
-gem 'rails', '> 3'
-gem 'spreadsheet'
-gem 'nokogiri'
-
-group :test, :development do
-  gem 'rspec'
-  gem 'haml'
-end
+# Specify dependencies in to_spreadsheet.gemspec
+gemspec

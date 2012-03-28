@@ -1,22 +1,25 @@
+require 'rubyXL'
+require 'rubyXL/writer/worksheet_writer'
+
 module ToSpreadsheet
-  require 'spreadsheet'
   module XLS
     extend self
 
     def to_io(html)
-      spreadsheet = Spreadsheet::Workbook.new
+      workbook = RubyXL::Workbook.new
+      workbook.worksheets= []
       Nokogiri::HTML::Document.parse(html).css('table').each_with_index do |xml_table, i|
-        sheet = spreadsheet.create_worksheet(:name => xml_table.css('caption').inner_text.presence || "Sheet #{i + 1}")
+        workbook.worksheets << (worksheet = RubyXL::Worksheet.new(workbook, xml_table.css('caption').inner_text.presence || "Sheet #{i + 1}"))
         xml_table.css('tr').each_with_index do |row_node, row|
           row_node.css('th,td').each_with_index do |col_node, col|
-            sheet[row, col] = typed_node_val(col_node)
+            node = typed_node_val(col_node)
+            cell = worksheet.add_cell(row, col, node)
           end
         end
       end
-      io = StringIO.new
-      spreadsheet.write(io)
-      io.rewind
-      io
+      tmp_file = File.new(%w[to_spreadsheet .xlsx].join, 'wb')
+      workbook.write(tmp_file.path)
+      StringIO.new(File.open(tmp_file.path).binmode.read)
     end
 
     private
@@ -32,8 +35,6 @@ module ToSpreadsheet
           DateTime.parse(val)
         when /date/
           Date.parse(val)
-        when /time/
-          Time.parse(val)
         else
           val
       end

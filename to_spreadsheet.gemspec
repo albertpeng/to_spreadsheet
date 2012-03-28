@@ -27,9 +27,11 @@ Gem::Specification.new do |s|
   s.test_files        = Dir["test/**/test_*.rb"]
   s.has_rdoc          = true
   s.extra_rdoc_files  = Dir["README*"]
-  s.add_dependency 'rails'
+  s.add_dependency 'rails', '> 3'
   s.add_dependency 'nokogiri'
-  s.add_dependency 'spreadsheet'
-  s.add_development_dependency 'mocha'
-  s.add_development_dependency 'sqlite3-ruby'
+  s.add_dependency 'rubyXL'
+  s.add_dependency 'rubyzip' # rubyXL lies! it is a runtime dependency, not development
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'haml'
+  s.add_development_dependency 'awesome_print'
 end
